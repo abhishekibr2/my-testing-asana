@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STARX — Loading</title>
+<style>
+  :root {
+    --stroke: #ffffff;       /* line color while drawing */
+    --fill: #ffffff;         /* final fill color        */
+    --bg1: #0b0f1a;
+    --bg2: #121a2e;
+    --cycle: 1.8s;           /* one full loading cycle (higher = slower) */
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    background: #000000;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .logo {
+    width: min(60vw, 480px);
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Each glyph path — outline only, never filled */
+  .logo path {
+    fill: none;
+    stroke: var(--stroke);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+
+    /* --len (total path length) and --dash (dash+gap pattern)
+       are set per-path by JS so the flow matches each glyph. */
+    stroke-dasharray: var(--dash);
+
+    /* continuously slide the dashes along the edges, forever */
+    animation: flow var(--cycle) linear infinite;
+  }
+
+  /* Marching dashes keep travelling around every letter's edge */
+  @keyframes flow {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: var(--len); }
+  }
+
+  .label {
+    color: #6f7d99;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dots { display: inline-flex; gap: 5px; }
+  .dots i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6f7d99;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dots i:nth-child(2) { animation-delay: 0.2s; }
+  .dots i:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.25; transform: translateY(0); }
+    50%      { opacity: 1;    transform: translateY(-3px); }
+  }
+</style>
+</head>
+<body>
+
+  <script>
+    // Measure each path's true outline length and build a dash pattern from it.
+    // Animating stroke-dashoffset by exactly one full length makes the dashes
+    // loop seamlessly — the edges appear to flow/rotate endlessly.
+    document.querySelectorAll('.logo path').forEach(function (p) {
+      var len = Math.ceil(p.getTotalLength());
+      // ONE single line segment per letter that travels around the outline.
+      // The lit dash covers part of the path; the gap covers all the rest,
+      // so only one continuous line is ever visible per glyph at a time.
+      var dash = len * 0.55;     // length of the visible line (fraction of outline)
+      var gap = len - dash;      // everything else stays empty
+      p.style.setProperty('--len', len);
+      p.style.setProperty('--dash', dash + ' ' + gap);
+    });
+  </script>
+
+</body>
+</html>
